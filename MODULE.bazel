@@ -1,0 +1,46 @@
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+module(name = "crt")
+
+bazel_dep(name = "platforms", version = "0.0.7")
+bazel_dep(name = "rules_foreign_cc", version = "0.8.0")
+bazel_dep(name = "rules_pkg", version = "0.7.0")
+bazel_dep(name = "rules_cc", version = "0.0.9")
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
+
+bazel_dep(
+    name = "rules_python",
+    version = "0.29.0",
+    dev_dependency = True,
+)
+
+bazel_dep(
+    name = "lowrisc_bazel_release",
+    version = "0.1.0",
+    dev_dependency = True,
+)
+# FIXME: point to upstream once merged.
+git_override(
+    module_name = "lowrisc_bazel_release",
+    remote = "https://github.com/jwnrt/bazel-release",
+    commit = "89f1f10ccc2eb61127e0a57718b1137688d46109",
+)
+
+sources = use_extension("//:extensions.bzl", "sources")
+use_repo(sources, "qemu_src", "cc65_src", "mxe_src")
+
+tools = use_extension("//:extensions.bzl", "tools")
+use_repo(tools, "qemu")
+
+crt = use_extension("//:extensions.bzl", "crt")
+crt.toolchains(
+    arm = True,
+    riscv32 = True,
+    win32 = False,
+)
+
+use_repo(crt, "crt_toolchains")
+register_toolchains("@crt_toolchains//toolchains:all")
+register_execution_platforms("@crt_toolchains//platforms:all")

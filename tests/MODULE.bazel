@@ -1,0 +1,18 @@
+module(name = "crt_tests")
+
+bazel_dep(name = "googletest", version = "1.14.0")
+bazel_dep(name = "crt")
+
+local_path_override(
+    module_name = "crt",
+    path = "../",
+)
+
+# TODO: There's some QEMU stuff going on here in the WORKSPACE.bazel
+
+crt_register_toolchains(
+    arm = True,
+    riscv32 = True,
+    win32 = True,
+    win64 = True,
+)
