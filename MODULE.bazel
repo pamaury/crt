@@ -31,11 +31,11 @@ use_repo(tools, "qemu")
 # FIXME should we define some default toolchains?
 crt = use_extension("@crt//:extensions.bzl", "crt")
 crt.toolchains(arm = True)
+# This doesn't work because toolchain_alias does not work.
 use_repo(crt, "crt_toolchains")
-# register_toolchains("@crt_toolchains//toolchains:all")
+register_toolchains("@crt_toolchains//toolchains:all")
 # register_execution_platforms("@crt_toolchains//platforms:all")
 
+# Required for now but will need to remove it.
 use_repo(crt, "gcc_arm_none_eabi_toolchains")
-use_repo(crt, "gcc_arm_none_eabi_files")
 register_toolchains("@gcc_arm_none_eabi_toolchains//:all")
-# register_execution_platforms("@gcc_arm_none_eabi_toolchains//:all")
