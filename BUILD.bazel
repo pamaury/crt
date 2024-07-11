@@ -3,48 +3,48 @@
 # SPDX-License-Identifier: Apache-2.0
 
 package(default_visibility = ["//visibility:public"])
-
-load("@lowrisc_bazel_release//release:release.bzl", "release")
-
-release(
-    name = "release",
-    artifacts = {
-        "@cc65_src//:cc65-binaries": "cc65 compiler",
-        "@mxe_src//:mxe-binaries-win32": "MXE Win32 compiler",
-        "@mxe_src//:mxe-binaries-win64": "MXE Win64 compiler",
-        "@qemu_src//:qemu-binaries": "QEMU system emulator",
-    },
-    env = {
-        "BASE_URL": "https://github.com/lowRISC/crt",
-    },
-    script = """(
-        cd "${BUILD_WORKSPACE_DIRECTORY}"
-
-        # Apparently envsubst can't handle bash arrays or dicts.
-        SHA256=${DIGEST[cc65-binaries.tar.xz]} envsubst \
-                <toolchains/cc65/repository.bzl.template \
-                >toolchains/cc65/repository.bzl
-        SHA256=${DIGEST[mxe-binaries-win32.tar.xz]} envsubst \
-                <toolchains/gcc_mxe_mingw32/repository.bzl.template \
-                >toolchains/gcc_mxe_mingw32/repository.bzl
-        SHA256=${DIGEST[mxe-binaries-win64.tar.xz]} envsubst \
-                <toolchains/gcc_mxe_mingw64/repository.bzl.template \
-                >toolchains/gcc_mxe_mingw64/repository.bzl
-        SHA256=${DIGEST[qemu-binaries.tar.xz]} envsubst \
-                <third_party/qemu/repos.bzl.template \
-                >third_party/qemu/repos.bzl
-
-        # Update modified hashes.
-        git commit -m "Update tags and hashes for ${RELEASE_TAG}" \
-                toolchains/cc65/repository.bzl \
-                toolchains/gcc_mxe_mingw32/repository.bzl \
-                toolchains/gcc_mxe_mingw64/repository.bzl \
-                third_party/qemu/repos.bzl
-
-        # Move the tag after the commit.
-        git tag -f "${RELEASE_TAG}"
-
-        # Push the updated commit and tag to the remote.
-        git push --atomic "${REMOTE}" "${BRANCH}" "${RELEASE_TAG}"
-    )""",
-)
+#
+# load("@lowrisc_bazel_release//release:release.bzl", "release")
+#
+# release(
+#     name = "release",
+#     artifacts = {
+#         "@cc65_src//:cc65-binaries": "cc65 compiler",
+#         "@mxe_src//:mxe-binaries-win32": "MXE Win32 compiler",
+#         "@mxe_src//:mxe-binaries-win64": "MXE Win64 compiler",
+#         "@qemu_src//:qemu-binaries": "QEMU system emulator",
+#     },
+#     env = {
+#         "BASE_URL": "https://github.com/lowRISC/crt",
+#     },
+#     script = """(
+#         cd "${BUILD_WORKSPACE_DIRECTORY}"
+#
+#         # Apparently envsubst can't handle bash arrays or dicts.
+#         SHA256=${DIGEST[cc65-binaries.tar.xz]} envsubst \
+#                 <toolchains/cc65/repository.bzl.template \
+#                 >toolchains/cc65/repository.bzl
+#         SHA256=${DIGEST[mxe-binaries-win32.tar.xz]} envsubst \
+#                 <toolchains/gcc_mxe_mingw32/repository.bzl.template \
+#                 >toolchains/gcc_mxe_mingw32/repository.bzl
+#         SHA256=${DIGEST[mxe-binaries-win64.tar.xz]} envsubst \
+#                 <toolchains/gcc_mxe_mingw64/repository.bzl.template \
+#                 >toolchains/gcc_mxe_mingw64/repository.bzl
+#         SHA256=${DIGEST[qemu-binaries.tar.xz]} envsubst \
+#                 <third_party/qemu/repos.bzl.template \
+#                 >third_party/qemu/repos.bzl
+#
+#         # Update modified hashes.
+#         git commit -m "Update tags and hashes for ${RELEASE_TAG}" \
+#                 toolchains/cc65/repository.bzl \
+#                 toolchains/gcc_mxe_mingw32/repository.bzl \
+#                 toolchains/gcc_mxe_mingw64/repository.bzl \
+#                 third_party/qemu/repos.bzl
+#
+#         # Move the tag after the commit.
+#         git tag -f "${RELEASE_TAG}"
+#
+#         # Push the updated commit and tag to the remote.
+#         git push --atomic "${REMOTE}" "${BRANCH}" "${RELEASE_TAG}"
+#     )""",
+# )

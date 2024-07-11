@@ -1,9 +1,13 @@
-# Copyright lowRISC contributors.
+ # Copyright lowRISC contributors.
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-load("//config:compiler.bzl", "setup")
-load("//platforms/arm:devices.bzl", "DEVICES")
+# Warning: with WORKSPACE, this file is executed normally, but with bzlmod
+# it will be executed in its own repository so all path to the crt repository
+# must be absolute.
+
+load("@crt//config:compiler.bzl", "setup")
+load("@crt//platforms/arm:devices.bzl", "DEVICES")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -20,7 +24,7 @@ SYSTEM_INCLUDE_PATHS = [
 filegroup(
     name = "compiler_components",
     srcs = [
-        "//toolchains/gcc_arm_none_eabi/wrappers:all",
+        "@crt//toolchains/gcc_arm_none_eabi/wrappers:all",
         "@gcc_arm_none_eabi_files//:all",
     ],
 )

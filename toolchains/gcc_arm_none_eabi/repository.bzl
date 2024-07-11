@@ -2,7 +2,7 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-load("@crt//rules:repo.bzl", "http_archive_or_local")
+load("@crt//rules:repo.bzl", "http_archive_or_local", "bzlmod_local_repository")
 
 def gcc_arm_none_eabi_repos(local = None):
     http_archive_or_local(
@@ -12,4 +12,9 @@ def gcc_arm_none_eabi_repos(local = None):
         strip_prefix = "gcc-arm-none-eabi-10.3-2021.10",
         build_file = Label("//toolchains:BUILD.export_all.bazel"),
         sha256 = "97dbb4f019ad1650b732faffcc881689cedc14e2b7ee863d390e0a41ef16c9a3",
+    )
+
+    bzlmod_local_repository(
+        name = "gcc_arm_none_eabi_toolchains",
+        build = Label(":BUILD.bazel"),
     )

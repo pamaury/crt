@@ -16,17 +16,11 @@ bazel_dep(
     dev_dependency = True,
 )
 
-bazel_dep(
-    name = "lowrisc_bazel_release",
-    version = "0.1.0",
-    dev_dependency = True,
-)
-# FIXME: point to upstream once merged.
-git_override(
-    module_name = "lowrisc_bazel_release",
-    remote = "https://github.com/jwnrt/bazel-release",
-    commit = "89f1f10ccc2eb61127e0a57718b1137688d46109",
-)
+# bazel_dep(
+#     name = "lowrisc_bazel_release",
+#     version = "0.1.0",
+#     dev_dependency = True,
+# )
 
 sources = use_extension("//:extensions.bzl", "sources")
 use_repo(sources, "qemu_src", "cc65_src", "mxe_src")
@@ -34,13 +28,14 @@ use_repo(sources, "qemu_src", "cc65_src", "mxe_src")
 tools = use_extension("//:extensions.bzl", "tools")
 use_repo(tools, "qemu")
 
-crt = use_extension("//:extensions.bzl", "crt")
-crt.toolchains(
-    arm = True,
-    riscv32 = True,
-    win32 = False,
-)
-
+# FIXME should we define some default toolchains?
+crt = use_extension("@crt//:extensions.bzl", "crt")
+crt.toolchains(arm = True)
 use_repo(crt, "crt_toolchains")
-register_toolchains("@crt_toolchains//toolchains:all")
-register_execution_platforms("@crt_toolchains//platforms:all")
+# register_toolchains("@crt_toolchains//toolchains:all")
+# register_execution_platforms("@crt_toolchains//platforms:all")
+
+use_repo(crt, "gcc_arm_none_eabi_toolchains")
+use_repo(crt, "gcc_arm_none_eabi_files")
+register_toolchains("@gcc_arm_none_eabi_toolchains//:all")
+# register_execution_platforms("@gcc_arm_none_eabi_toolchains//:all")

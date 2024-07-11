@@ -8,7 +8,7 @@ DEVICES = [
     device_config(
         name = "cortex_m",
         architecture = "armv6-m",
-        feature_set = "//platforms/arm/features:arm",
+        feature_set = "@crt//platforms/arm/features:arm",
         constraints = [
             "@platforms//cpu:armv6-m",
         ],

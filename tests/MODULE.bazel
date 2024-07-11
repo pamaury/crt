@@ -10,7 +10,9 @@ local_path_override(
 
 # TODO: There's some QEMU stuff going on here in the WORKSPACE.bazel
 
-crt_register_toolchains(
+crt = use_extension("@crt//:extensions.bzl", "crt")
+
+crt.toolchains(
     arm = True,
     riscv32 = True,
     win32 = True,

@@ -60,3 +60,13 @@ def http_archive_or_local(local = None, **kwargs):
             )
     else:
         http_archive(**kwargs)
+
+def _bzlmod_local_repository_impl(ctx):
+    ctx.file("BUILD", ctx.read(ctx.attr.build))
+
+bzlmod_local_repository = repository_rule(
+    implementation = _bzlmod_local_repository_impl,
+    attrs = {
+        "build": attr.label(mandatory = True),
+    }
+)

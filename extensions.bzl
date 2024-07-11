@@ -25,12 +25,15 @@ tools = module_extension(
 def _crt_impl(ctx):
     toolchains = sets.make()
 
+    # Gather all toolchains requested by other modules.
     for mod in ctx.modules:
         for tag in mod.tags.toolchains:
             enabled = [toolchain for toolchain in dir(tag) if getattr(tag, toolchain)]
             toolchains = sets.union(toolchains, sets.make(enabled))
 
+    hub_toolchains = {}
     if sets.contains(toolchains, "arm"):
+        hub_toolchains["cortex_m"] = "@gcc_arm_none_eabi_toolchains//:cortex_m"
         gcc_arm_none_eabi_repos()
 
     if sets.contains(toolchains, "m6502"):
@@ -47,6 +50,10 @@ def _crt_impl(ctx):
 
     # TODO: call `toolchain_hub(name = "crt_toolchains")` to create a repo
     # containing all the above toolchains.
+    toolchain_hub(
+        name = "crt_toolchains",
+        toolchains = hub_toolchains
+    )
 
 crt = module_extension(
     implementation = _crt_impl,
@@ -66,29 +73,35 @@ crt = module_extension(
 # aliases cross repositories like this.
 
 _build_file_alias_template = """
-alias(
+toolchain_alias(
     name = "{name}",
     actual = "{actual}",
 )  
 """
 
 def BUILD_for_aliases(aliases):
-    return "\n".join([_build_file_alias_template.format(
-        name = label.name,
+    loads = """
+load("@crt//rules:toolchain.bzl", "toolchain_alias")
+"""
+    return loads + "\n".join([_build_file_alias_template.format(
+        name = name,
         actual = label,
-    ) for label in aliases])
+    ) for (name, label) in aliases.items()])
 
 def _toolchain_hub_impl(ctx):
     toolchains = BUILD_for_aliases(ctx.attr.toolchains)
     execution_platforms = BUILD_for_aliases(ctx.attr.execution_platforms)
 
-    ctx.file("//toolchains/BUILD.bazel", content=toolchains)
-    ctx.file("//platforms/BUILD.bazel", content=execution_platforms)
+    ctx.file("toolchains/BUILD.bazel", content=toolchains)
+    ctx.file("platforms/BUILD.bazel", content=execution_platforms)
 
 toolchain_hub = repository_rule(
     implementation = _toolchain_hub_impl,
     attrs = {
-        "execution_platforms": attr.label_list(),
-        "toolchains": attr.label_list(),
+        # Note: those are dict strings and not dict labels because the targets we will point
+        # to are in dynamically created repositories which are not "used" in MODULE.bazel so
+        # bazel will think they are invalid when the extension is evaluated.
+        "execution_platforms": attr.string_dict(),
+        "toolchains": attr.string_dict(),
     },
 )
