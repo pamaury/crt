@@ -1,30 +1,35 @@
- # Copyright lowRISC contributors.
+# Copyright lowRISC contributors.
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
 # Warning: with WORKSPACE, this file is executed normally, but with bzlmod
 # it will be executed in its own repository so all path to the crt repository
-# must be absolute.
+# must be absolute and all other paths must be relative. See repository.bzl.
 
 load("@crt//config:compiler.bzl", "setup")
 load("@crt//platforms/arm:devices.bzl", "DEVICES")
+load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
+load("@gcc_arm_none_eabi_files//:repo.bzl", "REPO_PATH")
 
 package(default_visibility = ["//visibility:public"])
 
+# See https://stackoverflow.com/questions/72078638/how-to-pass-include-directories-from-package-imported-in-workspace-to-cxx-builti
+# See https://cs.opensource.google/bazel/bazel/+/6d448136d13ddab92da8bb29ea6e8387821369d9:src/main/java/com/google/devtools/build/lib/rules/cpp/CcToolchainProviderHelper.java;l=309-329
+# This is undocumented: the include directory can use a special syntax to resolve paths.
 SYSTEM_INCLUDE_PATHS = [
-    "external/gcc_arm_none_eabi_files/arm-none-eabi/include",
-    "external/gcc_arm_none_eabi_files/arm-none-eabi/include/c++/10.3.1",
-    "external/gcc_arm_none_eabi_files/arm-none-eabi/include/c++/10.3.1/arm-none-eabi",
-    "external/gcc_arm_none_eabi_files/arm-none-eabi/include/c++/10.3.1/backward",
-    "external/gcc_arm_none_eabi_files/arm-none-eabi/include/newlib-nano",
-    "external/gcc_arm_none_eabi_files/lib/gcc/arm-none-eabi/10.3.1/include",
-    "external/gcc_arm_none_eabi_files/lib/gcc/arm-none-eabi/10.3.1/include-fixed",
+    "%package(@gcc_arm_none_eabi_files//arm-none-eabi/include)%",
+    "%package(@gcc_arm_none_eabi_files//arm-none-eabi/include)%/arm-none-eabi/include/c++/10.3.1",
+    "%package(@gcc_arm_none_eabi_files//arm-none-eabi/include)%/arm-none-eabi/include/c++/10.3.1/arm-none-eabi",
+    "%package(@gcc_arm_none_eabi_files//arm-none-eabi/include)%/arm-none-eabi/include/c++/10.3.1/backward",
+    "%package(@gcc_arm_none_eabi_files//arm-none-eabi/include)%/arm-none-eabi/include/newlib-nano",
+    "%package(@gcc_arm_none_eabi_files//arm-none-eabi/include)%/lib/gcc/arm-none-eabi/10.3.1/include",
+    "%package(@gcc_arm_none_eabi_files//arm-none-eabi/include)%/lib/gcc/arm-none-eabi/10.3.1/include-fixed",
 ]
 
 filegroup(
     name = "compiler_components",
     srcs = [
-        "@crt//toolchains/gcc_arm_none_eabi/wrappers:all",
+        "//wrappers:all", # FIXME won't work with WORKSPACE?
         "@gcc_arm_none_eabi_files//:all",
     ],
 )

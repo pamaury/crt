@@ -2,6 +2,7 @@ module(name = "crt_tests")
 
 bazel_dep(name = "googletest", version = "1.14.0")
 bazel_dep(name = "crt")
+bazel_dep(name = "platforms", version = "0.0.7")
 
 local_path_override(
     module_name = "crt",

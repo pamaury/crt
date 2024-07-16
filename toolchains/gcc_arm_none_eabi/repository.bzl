@@ -16,5 +16,5 @@ def gcc_arm_none_eabi_repos(local = None):
 
     bzlmod_local_repository(
         name = "gcc_arm_none_eabi_toolchains",
-        build = Label(":BUILD.bazel"),
+        path = "@crt//toolchains/gcc_arm_none_eabi:BUILD.bazel",
     )

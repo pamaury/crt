@@ -62,11 +62,15 @@ def http_archive_or_local(local = None, **kwargs):
         http_archive(**kwargs)
 
 def _bzlmod_local_repository_impl(ctx):
-    ctx.file("BUILD", ctx.read(ctx.attr.build))
+    parent_dir = ctx.path(ctx.attr.path).dirname
+
+    for child in parent_dir.readdir():
+        print(child)
+        ctx.symlink(child, child.basename)
 
 bzlmod_local_repository = repository_rule(
     implementation = _bzlmod_local_repository_impl,
     attrs = {
-        "build": attr.label(mandatory = True),
-    }
+        "path": attr.label(mandatory = True, doc = "label to a BUILD file whose parent directory will become the root of this repository"),
+    },
 )

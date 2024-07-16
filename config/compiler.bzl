@@ -108,7 +108,8 @@ def setup(
         substitutions = {},
         params = {}):
     subst = {
-        "[SYSTEM_INCLUDES]": listify_flags(isystem, include_directories),
+        # "[SYSTEM_INCLUDES]": listify_flags(isystem, include_directories),
+        "[SYSTEM_INCLUDES]": "",
     }
     subst.update(substitutions)
 
