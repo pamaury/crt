@@ -14,9 +14,6 @@ load("@bazel_skylib//lib:dicts.bzl", "dicts")
 
 package(default_visibility = ["//visibility:public"])
 
-# See https://stackoverflow.com/questions/72078638/how-to-pass-include-directories-from-package-imported-in-workspace-to-cxx-builti
-# See https://cs.opensource.google/bazel/bazel/+/6d448136d13ddab92da8bb29ea6e8387821369d9:src/main/java/com/google/devtools/build/lib/rules/cpp/CcToolchainProviderHelper.java;l=309-329
-# This is undocumented: the include directory can use a special syntax to resolve paths.
 SYSTEM_INCLUDE_PATHS = [
     "GCC_ARM_NONE_EABI_FILES/arm-none-eabi/include",
     "GCC_ARM_NONE_EABI_FILES/arm-none-eabi/include/c++/10.3.1",
