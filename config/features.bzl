@@ -13,6 +13,7 @@ load(
     __env_entry = "env_entry",
 )
 load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
+load("@bazel_skylib//lib:structs.bzl", "structs")
 
 with_feature_set = __with_feature_set
 
@@ -39,9 +40,30 @@ LD_ALL_ACTIONS = [
     ACTION_NAMES.cpp_link_nodeps_dynamic_library,
 ]
 
-ALL_ACTIONS = CPP_ALL_COMPILE_ACTIONS + C_ALL_COMPILE_ACTIONS + LD_ALL_ACTIONS
+ALL_ACTIONS = structs.to_dict(ACTION_NAMES).values()
 
 FeatureSetInfo = provider(fields = ["features", "subst"])
+
+# Apply substitutions: they are applied "recursively", meaning that
+# the content of a previous substitution is itself subject to substitution.
+def apply_subst(array, subst):
+    # We cannot make a while loop but we know that for a well-formed set
+    # of substitutions, the longest chain of substitution possible is len(subst)
+    # so we just iterate that many times and stop as soon as nothing changes anymore.
+    for _ in range(1, len(subst)):
+        array2 = []
+        for f in array:
+            if f in subst:
+                if f.startswith("[") and f.endswith("]"):
+                    array2.extend(subst[f].split("|"))
+            else:
+                for k, v in subst.items():
+                    f = f.replace(k, v)
+                array2.append(f)
+        if array == array2:
+            break
+        array = array2
+    return array
 
 def reify_flag_group(
         flags = [],
@@ -54,18 +76,9 @@ def reify_flag_group(
         expand_if_equal = None,
         type_name = None,
         subst = {}):
-    flags2 = []
-    for f in flags:
-        if f in subst:
-            if f.startswith("[") and f.endswith("]"):
-                flags2.extend(subst[f].split("|"))
-        else:
-            for k, v in subst.items():
-                f = f.replace(k, v)
-            flags2.append(f)
 
     return __flag_group(
-        flags2,
+        apply_subst(flags, subst),
         flag_groups,
         iterate_over,
         expand_if_available,
@@ -276,6 +289,9 @@ feature_set = rule(
     attrs = {
         "base": attr.label_list(default = [], providers = [FeatureSetInfo], doc = "A base feature set to derive a new set"),
         "feature": attr.label_list(mandatory = True, providers = [FeatureInfo], doc = "A list of features in this set"),
+        # Substitutions apply until nothing changes (fixed point). For example if
+        #   substitutions = {"X": "a", "Y": "Xb"}
+        # then the result of "Y" will be "ab".
         "substitutions": attr.string_dict(doc = "Substitutions to apply to features"),
     },
     provides = [FeatureSetInfo],

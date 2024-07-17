@@ -8,6 +8,7 @@ load(
     "ArtifactNamePatternInfo",
     "artifact_name_pattern",
     "tool_path",
+    "make_variable",
 )
 load("@rules_cc//cc:defs.bzl", "cc_toolchain")
 
@@ -98,6 +99,11 @@ artifact_name = rule(
     provides = [ArtifactNamePatternInfo],
 )
 
+def subst_string(value, subst):
+    for k, v in subst.items():
+        value = value.replace(k, v)
+    return value
+
 def setup(
         name,
         architecture,
@@ -112,8 +118,7 @@ def setup(
         params = {},
         subst_deps = []):
     subst = {
-        # "[SYSTEM_INCLUDES]": listify_flags(isystem, include_directories),
-        "[SYSTEM_INCLUDES]": "",
+        "[SYSTEM_INCLUDES]": listify_flags(isystem, include_directories),
     }
     subst.update(substitutions)
 
@@ -124,7 +129,7 @@ def setup(
         feature_set = feature_set,
         tools = tools,
         toolchain_identifier = name,
-        include_directories = include_directories,
+        include_directories = [],
         params = params,
         substitutions = subst,
         subst_deps = subst_deps,

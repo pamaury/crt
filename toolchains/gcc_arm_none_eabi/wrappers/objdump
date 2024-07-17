@@ -1,4 +1,4 @@
 #!/bin/bash
 
 set -euo pipefail
-external/gcc_arm_none_eabi_files/bin/arm-none-eabi-objdump "$@"
+"$GCC_ARM_NONE_EABI_FILES/bin/arm-none-eabi-objdump" "$@"

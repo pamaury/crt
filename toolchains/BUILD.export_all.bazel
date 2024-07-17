@@ -12,3 +12,4 @@ filegroup(
 )
 
 exports_files(glob(["bin/**"]))
+exports_files(["."])

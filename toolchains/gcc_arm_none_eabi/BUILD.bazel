@@ -18,13 +18,13 @@ package(default_visibility = ["//visibility:public"])
 # See https://cs.opensource.google/bazel/bazel/+/6d448136d13ddab92da8bb29ea6e8387821369d9:src/main/java/com/google/devtools/build/lib/rules/cpp/CcToolchainProviderHelper.java;l=309-329
 # This is undocumented: the include directory can use a special syntax to resolve paths.
 SYSTEM_INCLUDE_PATHS = [
-    "%package(@gcc_arm_none_eabi_files//arm-none-eabi/include)%",
-    "%package(@gcc_arm_none_eabi_files//arm-none-eabi/include)%/arm-none-eabi/include/c++/10.3.1",
-    "%package(@gcc_arm_none_eabi_files//arm-none-eabi/include)%/arm-none-eabi/include/c++/10.3.1/arm-none-eabi",
-    "%package(@gcc_arm_none_eabi_files//arm-none-eabi/include)%/arm-none-eabi/include/c++/10.3.1/backward",
-    "%package(@gcc_arm_none_eabi_files//arm-none-eabi/include)%/arm-none-eabi/include/newlib-nano",
-    "%package(@gcc_arm_none_eabi_files//arm-none-eabi/include)%/lib/gcc/arm-none-eabi/10.3.1/include",
-    "%package(@gcc_arm_none_eabi_files//arm-none-eabi/include)%/lib/gcc/arm-none-eabi/10.3.1/include-fixed",
+    "GCC_ARM_NONE_EABI_FILES/arm-none-eabi/include",
+    "GCC_ARM_NONE_EABI_FILES/arm-none-eabi/include/c++/10.3.1",
+    "GCC_ARM_NONE_EABI_FILES/arm-none-eabi/include/c++/10.3.1/arm-none-eabi",
+    "GCC_ARM_NONE_EABI_FILES/arm-none-eabi/include/c++/10.3.1/backward",
+    "GCC_ARM_NONE_EABI_FILES/arm-none-eabi/include/newlib-nano",
+    "GCC_ARM_NONE_EABI_FILES/lib/gcc/arm-none-eabi/10.3.1/include",
+    "GCC_ARM_NONE_EABI_FILES/lib/gcc/arm-none-eabi/10.3.1/include-fixed",
 ]
 
 filegroup(
@@ -42,8 +42,8 @@ feature(
             actions = ALL_ACTIONS,
             env_entries = [
                 env_entry(
-                    key = "GCC_ARM_NONE_EABI_FILES_GCC",
-                    value = "GCC_ARM_NONE_EABI_FILES_GCC",
+                    key = "GCC_ARM_NONE_EABI_FILES",
+                    value = "GCC_ARM_NONE_EABI_FILES",
                 ),
             ]
         )
@@ -68,9 +68,9 @@ feature(
         "compiler": "gcc",
     },
     substitutions = dicts.add(device.substitutions, {
-        "GCC_ARM_NONE_EABI_FILES_GCC": "$(execpath @gcc_arm_none_eabi_files//:bin/arm-none-eabi-gcc)",
+        "GCC_ARM_NONE_EABI_FILES": "$(execpath @gcc_arm_none_eabi_files//:.)",
     }),
-    subst_deps = ["@gcc_arm_none_eabi_files//:bin/arm-none-eabi-gcc"],
+    subst_deps = ["@gcc_arm_none_eabi_files//:."],
     tools = {
         "ar": "wrappers/ar",
         "cpp": "wrappers/cpp",
