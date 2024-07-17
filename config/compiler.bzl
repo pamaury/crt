@@ -2,7 +2,7 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-load("//config:features.bzl", "FeatureSetInfo", "feature_set_subst")
+load("//config:features.bzl", "FeatureSetInfo", "feature_set_subst", "feature", _feature_set = "feature_set", "env_set", "env_entry", "ALL_ACTIONS")
 load(
     "@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl",
     "ArtifactNamePatternInfo",
@@ -116,17 +116,41 @@ def setup(
         isystem = "-isystem{}",
         substitutions = {},
         params = {},
-        subst_deps = []):
+        subst_deps = [],
+        env_vars = {}):
     subst = {
         "[SYSTEM_INCLUDES]": listify_flags(isystem, include_directories),
     }
     subst.update(substitutions)
 
+    feature(
+        name = name + "_env",
+        enabled = True,
+        env_sets = [
+            env_set(
+                actions = ALL_ACTIONS,
+                env_entries = [
+                    env_entry(
+                        key,
+                        value,
+                    )
+                    for (key, value) in env_vars.items()
+                ]
+            )
+        ]
+    )
+
+    _feature_set(
+        name = name + "_features",
+        base = [feature_set],
+        feature = [":{}_env".format(name)],
+    )
+
     toolchain_config(
         name = name + "_config",
         architecture = architecture,
         artifact_naming = artifact_naming,
-        feature_set = feature_set,
+        feature_set = ":{}_features".format(name),
         tools = tools,
         toolchain_identifier = name,
         include_directories = [],

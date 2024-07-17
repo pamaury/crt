@@ -7,7 +7,7 @@
 # must be absolute and all other paths must be relative. See repository.bzl.
 
 load("@crt//config:compiler.bzl", "setup")
-load("@crt//config:features.bzl", "feature", "feature_set", "env_set", "env_entry", "ALL_ACTIONS")
+load("@crt//config:features.bzl", "feature", "ALL_ACTIONS")
 load("@crt//platforms/arm:devices.bzl", "DEVICES")
 load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
@@ -34,38 +34,19 @@ filegroup(
     ],
 )
 
-feature(
-    name = "gcc_arm_none_eabi_files_feature",
-    enabled = True,
-    env_sets = [
-        env_set(
-            actions = ALL_ACTIONS,
-            env_entries = [
-                env_entry(
-                    key = "GCC_ARM_NONE_EABI_FILES",
-                    value = "GCC_ARM_NONE_EABI_FILES",
-                ),
-            ]
-        )
-    ]
-)
-
-[feature_set(
-    name = device.name + "_features",
-    base = [device.feature_set],
-    feature = [":gcc_arm_none_eabi_files_feature"],
-) for device in DEVICES]
-
 [setup(
     name = device.name,
     architecture = device.architecture,
     artifact_naming = device.artifact_naming,
     compiler_components = ":compiler_components",
     constraints = device.constraints,
-    feature_set = device.name + "_features",
+    feature_set = device.feature_set,
     include_directories = SYSTEM_INCLUDE_PATHS,
     params = {
         "compiler": "gcc",
+    },
+    env_vars = {
+        "GCC_ARM_NONE_EABI_FILES": "GCC_ARM_NONE_EABI_FILES",
     },
     substitutions = dicts.add(device.substitutions, {
         "GCC_ARM_NONE_EABI_FILES": "$(execpath @gcc_arm_none_eabi_files//:.)",
