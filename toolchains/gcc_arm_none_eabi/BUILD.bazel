@@ -7,9 +7,10 @@
 # must be absolute and all other paths must be relative. See repository.bzl.
 
 load("@crt//config:compiler.bzl", "setup")
+load("@crt//config:features.bzl", "feature", "feature_set", "env_set", "env_entry", "ALL_ACTIONS")
 load("@crt//platforms/arm:devices.bzl", "DEVICES")
 load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
-load("@gcc_arm_none_eabi_files//:repo.bzl", "REPO_PATH")
+load("@bazel_skylib//lib:dicts.bzl", "dicts")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -28,11 +29,32 @@ SYSTEM_INCLUDE_PATHS = [
 
 filegroup(
     name = "compiler_components",
-    srcs = [
-        "//wrappers:all", # FIXME won't work with WORKSPACE?
+    srcs = glob(["wrappers/*"]) + [
         "@gcc_arm_none_eabi_files//:all",
     ],
 )
+
+feature(
+    name = "gcc_arm_none_eabi_files_feature",
+    enabled = True,
+    env_sets = [
+        env_set(
+            actions = ALL_ACTIONS,
+            env_entries = [
+                env_entry(
+                    key = "GCC_ARM_NONE_EABI_FILES_GCC",
+                    value = "GCC_ARM_NONE_EABI_FILES_GCC",
+                ),
+            ]
+        )
+    ]
+)
+
+[feature_set(
+    name = device.name + "_features",
+    base = [device.feature_set],
+    feature = [":gcc_arm_none_eabi_files_feature"],
+) for device in DEVICES]
 
 [setup(
     name = device.name,
@@ -40,12 +62,15 @@ filegroup(
     artifact_naming = device.artifact_naming,
     compiler_components = ":compiler_components",
     constraints = device.constraints,
-    feature_set = device.feature_set,
+    feature_set = device.name + "_features",
     include_directories = SYSTEM_INCLUDE_PATHS,
     params = {
         "compiler": "gcc",
     },
-    substitutions = device.substitutions,
+    substitutions = dicts.add(device.substitutions, {
+        "GCC_ARM_NONE_EABI_FILES_GCC": "$(execpath @gcc_arm_none_eabi_files//:bin/arm-none-eabi-gcc)",
+    }),
+    subst_deps = ["@gcc_arm_none_eabi_files//:bin/arm-none-eabi-gcc"],
     tools = {
         "ar": "wrappers/ar",
         "cpp": "wrappers/cpp",

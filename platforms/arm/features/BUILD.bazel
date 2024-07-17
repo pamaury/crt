@@ -11,6 +11,8 @@ load(
     "feature_set",
     "flag_group",
     "flag_set",
+    "env_set",
+    "env_entry",
 )
 
 package(default_visibility = ["//visibility:public"])

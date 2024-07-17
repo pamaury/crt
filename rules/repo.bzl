@@ -65,7 +65,6 @@ def _bzlmod_local_repository_impl(ctx):
     parent_dir = ctx.path(ctx.attr.path).dirname
 
     for child in parent_dir.readdir():
-        print(child)
         ctx.symlink(child, child.basename)
 
 bzlmod_local_repository = repository_rule(

@@ -41,7 +41,9 @@ def _toolchain_config_impl(ctx):
     ]
     params = dict(**PARAM_DEFAULTS)
     params.update(ctx.attr.params)
-    features = feature_set_subst(ctx.attr.feature_set[FeatureSetInfo], **ctx.attr.substitutions)
+    subst = {key: ctx.expand_location(val, ctx.attr.subst_deps) for (key, val) in ctx.attr.substitutions.items()}
+
+    features = feature_set_subst(ctx.attr.feature_set[FeatureSetInfo], **subst)
     artifact_name_patterns = [a[ArtifactNamePatternInfo] for a in ctx.attr.artifact_naming]
 
     return cc_common.create_cc_toolchain_config_info(
@@ -74,6 +76,7 @@ toolchain_config = rule(
         ),
         "include_directories": attr.string_list(doc = "Compiler-specific include directories"),
         "params": attr.string_dict(doc = "Toolchain config parameters", default = {}),
+        "subst_deps": attr.label_list(allow_files = True),
     },
     provides = [CcToolchainConfigInfo],
 )
@@ -106,7 +109,8 @@ def setup(
         constraints,
         isystem = "-isystem{}",
         substitutions = {},
-        params = {}):
+        params = {},
+        subst_deps = []):
     subst = {
         # "[SYSTEM_INCLUDES]": listify_flags(isystem, include_directories),
         "[SYSTEM_INCLUDES]": "",
@@ -123,6 +127,7 @@ def setup(
         include_directories = include_directories,
         params = params,
         substitutions = subst,
+        subst_deps = subst_deps,
     )
 
     cc_toolchain(

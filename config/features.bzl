@@ -9,6 +9,8 @@ load(
     __flag_group = "flag_group",
     __flag_set = "flag_set",
     __with_feature_set = "with_feature_set",
+    __env_set = "env_set",
+    __env_entry = "env_entry",
 )
 load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
 
@@ -36,6 +38,8 @@ LD_ALL_ACTIONS = [
     ACTION_NAMES.cpp_link_dynamic_library,
     ACTION_NAMES.cpp_link_nodeps_dynamic_library,
 ]
+
+ALL_ACTIONS = CPP_ALL_COMPILE_ACTIONS + C_ALL_COMPILE_ACTIONS + LD_ALL_ACTIONS
 
 FeatureSetInfo = provider(fields = ["features", "subst"])
 
@@ -93,6 +97,11 @@ def reify_flag_set(
         flag_groups = [reify_flag_group(**v) for v in flag_groups],
     )
 
+def subst_env_entry(key, value, subst):
+    for k, v in subst.items():
+        value = value.replace(k, v)
+    return __env_entry(key, value)
+
 def feature_set_subst(fs, **kwargs):
     subst = dict(fs.subst)
     subst.update(kwargs)
@@ -119,6 +128,17 @@ def feature_set_subst(fs, **kwargs):
             )
             for f in feature.flag_sets
         ]
+        env_sets = [
+            __env_set(
+                s.actions,
+                [
+                    subst_env_entry(e.key, e.value, subst)
+                    for e in s.env_entries
+                ],
+                s.with_features,
+            )
+            for s in feature.env_sets
+        ]
         features[name] = __feature(
             name = feature.name,
             enabled = feature.enabled,
@@ -126,6 +146,7 @@ def feature_set_subst(fs, **kwargs):
             requires = feature.requires,
             implies = feature.implies,
             provides = feature.provides,
+            env_sets = env_sets,
         )
     return features
 
@@ -159,6 +180,38 @@ def flag_set(
         "flag_groups": flag_groups,
     })
 
+def reify_env_entry(key, value):
+    return __env_entry(
+        key,
+        value,
+    )
+
+def env_entry(key, value):
+    return {
+        "key": key,
+        "value": value,
+    }
+
+def reify_env_set(
+        actions = [],
+        env_entries = [],
+        with_features = []):
+    return __env_set(
+        actions,
+        env_entries = [reify_env_entry(**v) for v in env_entries],
+        with_features = [reify_with_features_set(**v) for v in with_features],
+    )
+
+def env_set(
+        actions,
+        env_entries = [],
+        with_features = []):
+    return json.encode({
+        "actions": actions,
+        "with_features": with_features,
+        "env_entries": env_entries,
+    })
+
 def _feature_impl(ctx):
     return [
         __feature(
@@ -168,6 +221,7 @@ def _feature_impl(ctx):
             requires = ctx.attr.requires,
             implies = ctx.attr.implies,
             provides = ctx.attr.provides,
+            env_sets = [reify_env_set(**json.decode(v)) for v in ctx.attr.env_sets],
         ),
     ]
 
@@ -179,6 +233,7 @@ feature = rule(
         "requires": attr.string_list(default = [], doc = "A list of feature sets defining when this feature is supported by the toolchain."),
         "implies": attr.string_list(default = [], doc = "A string list of features or action configs that are automatically enabled when this feature is enabled."),
         "provides": attr.string_list(default = [], doc = "A list of names this feature conflicts with."),
+        "env_sets": attr.string_list(default = [], doc = "A list of env_set this feature will apply if enabled."),
     },
     provides = [FeatureInfo],
 )

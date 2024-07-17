@@ -2,4 +2,5 @@
 
 set -euo pipefail
 # Workaround to replace all system includes with user includes
-$GCC_ARM_NONE_EABI_FILES/bin/arm-none-eabi-gcc "${@}" -fdiagnostics-color=always
+echo "$GCC_ARM_NONE_EABI_FILES_GCC" "${@}" -fdiagnostics-color=always >&2
+"$GCC_ARM_NONE_EABI_FILES_GCC" "${@}" -fdiagnostics-color=always
