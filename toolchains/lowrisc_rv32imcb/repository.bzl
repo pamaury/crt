@@ -2,7 +2,7 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-load("@crt//rules:repo.bzl", "http_archive_or_local")
+load("@crt//rules:repo.bzl", "http_archive_or_local", "bzlmod_local_repository")
 
 def lowrisc_rv32imcb_repos(local = None):
     http_archive_or_local(
@@ -12,4 +12,9 @@ def lowrisc_rv32imcb_repos(local = None):
         sha256 = "08b1ba2089aa4206efdca93b7ab70152c3fe16ef4c6ee112a4f35ee3dc65aa8c",
         strip_prefix = "lowrisc-toolchain-rv32imcb-20230519-1",
         build_file = Label("//toolchains:BUILD.export_all.bazel"),
+    )
+
+    bzlmod_local_repository(
+        name = "lowrisc_rv32imcb_toolchains",
+        path = "@crt//toolchains/lowrisc_rv32imcb:BUILD.bazel",
     )

@@ -7,7 +7,6 @@
 # must be absolute and all other paths must be relative. See repository.bzl.
 
 load("@crt//config:compiler.bzl", "setup")
-load("@crt//config:features.bzl", "feature", "ALL_ACTIONS")
 load("@crt//platforms/arm:devices.bzl", "DEVICES")
 load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
 load("@bazel_skylib//lib:dicts.bzl", "dicts")

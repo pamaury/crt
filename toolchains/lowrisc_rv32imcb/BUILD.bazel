@@ -2,23 +2,28 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-load("//config:compiler.bzl", "setup")
-load("//platforms/riscv32:devices.bzl", "DEVICES")
+# Warning: with WORKSPACE, this file is executed normally, but with bzlmod
+# it will be executed in its own repository so all path to the crt repository
+# must be absolute and all other paths must be relative. See repository.bzl.
+
+load("@crt//config:compiler.bzl", "setup")
+load("@crt//platforms/riscv32:devices.bzl", "DEVICES")
+load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
+load("@bazel_skylib//lib:dicts.bzl", "dicts")
 
 package(default_visibility = ["//visibility:public"])
 
 SYSTEM_INCLUDE_PATHS = [
-    "external/lowrisc_rv32imcb_files/lib/clang/16/include",
-    "external/lowrisc_rv32imcb_files/riscv32-unknown-elf/include",
-    "external/lowrisc_rv32imcb_files/riscv32-unknown-elf/include/c++/10.2.0",
-    "external/lowrisc_rv32imcb_files/riscv32-unknown-elf/include/c++/10.2.0/backward",
-    "external/lowrisc_rv32imcb_files/riscv32-unknown-elf/include/c++/10.2.0/riscv32-unknown-elf",
+    "LOWRISC_RV32IMCB_FILES/lib/clang/16/include",
+    "LOWRISC_RV32IMCB_FILES/riscv32-unknown-elf/include",
+    "LOWRISC_RV32IMCB_FILES/riscv32-unknown-elf/include/c++/10.2.0",
+    "LOWRISC_RV32IMCB_FILES/riscv32-unknown-elf/include/c++/10.2.0/backward",
+    "LOWRISC_RV32IMCB_FILES/riscv32-unknown-elf/include/c++/10.2.0/riscv32-unknown-elf",
 ]
 
 filegroup(
     name = "compiler_components",
-    srcs = [
-        "//toolchains/lowrisc_rv32imcb/wrappers:all",
+    srcs = glob(["wrappers/*"]) + [
         "@lowrisc_rv32imcb_files//:all",
     ],
 )
@@ -34,7 +39,13 @@ filegroup(
     params = {
         "compiler": "clang",
     },
-    substitutions = device.substitutions,
+    env_vars = {
+        "LOWRISC_RV32IMCB_FILES": "LOWRISC_RV32IMCB_FILES",
+    },
+    substitutions = dicts.add(device.substitutions, {
+        "LOWRISC_RV32IMCB_FILES": "$(execpath @lowrisc_rv32imcb_files//:.)",
+    }),
+    subst_deps = ["@lowrisc_rv32imcb_files//:."],
     tools = {
         "ar": "wrappers/ar",
         "cpp": "wrappers/cpp",
